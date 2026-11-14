@@ -4,6 +4,10 @@ A React flashcard app for the voter-engagement and callers team. It gives fact-c
 
 134 cards in 7 topics: National Debt & Borrowing, Fuel Subsidy Removal, Corruption & Accountability, Regional Inclusion, Renewed Hope Promises, Youth, Jobs & Japa, and Judiciary & Electoral Integrity.
 
+**Live app:** https://akighir-aondohemba.github.io/Counter-narrative-flashcards/
+
+Every push to `main` rebuilds and redeploys the site through GitHub Actions (`.github/workflows/deploy-pages.yml`).
+
 ## Run it
 
 You need [Node.js](https://nodejs.org) 18 or later.
