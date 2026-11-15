@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { noteLabel } from "../lib/cards.js";
 
 // One study run. "Got it" removes the current card; "Review again" moves it to the back.
 export default function StudySession({ cards }) {
@@ -59,7 +60,18 @@ export default function StudySession({ cards }) {
           {card.topic} · {card.kind}
         </div>
         <div className="q">{card.q}</div>
-        {shown ? <div className="a">{card.a}</div> : <div className="hint">Tap or press Space to reveal</div>}
+        {shown ? (
+          <>
+            <div className="a">{card.a}</div>
+            {card.note && (
+              <div className="note">
+                <strong>{noteLabel(card)}:</strong> {card.note}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="hint">Tap or press Space to reveal</div>
+        )}
       </div>
       <div className="progress">
         Card {pos + 1} of {queue.length} remaining · {learned} learned

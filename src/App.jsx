@@ -5,6 +5,7 @@ import ChipGroup from "./components/ChipGroup.jsx";
 import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
 import ExportPanel from "./components/ExportPanel.jsx";
+import SearchPanel from "./components/SearchPanel.jsx";
 
 const STORE = "cn-flashcards-decks-v1"; // user-added decks, saved as { topic: tsvText }
 
@@ -47,8 +48,10 @@ export default function App() {
     setter(next);
   };
 
-  function start() {
-    setSession({ cards: doShuffle ? shuffle(selected) : selected, key: Date.now() });
+  const allCards = Object.entries(decks).flatMap(([t, list]) => list.map((c) => ({ ...c, topic: t })));
+
+  function start(cards = selected, mix = doShuffle) {
+    setSession({ cards: mix ? shuffle(cards) : cards, key: Date.now() });
     setTimeout(() => studyRef.current?.scrollIntoView({ behavior: "smooth" }), 0);
   }
 
@@ -62,8 +65,12 @@ export default function App() {
       <h1>Counter-Narrative Flashcards</h1>
       <p className="sub">
         Fact-checked answers to common narratives about the Tinubu (PBAT) administration. Pick topics and
-        card types, then study. Tap a card to show the answer.
+        card types, then study, or search for a word or phrase. Tap a card to show the answer.
       </p>
+
+      <section className="panel">
+        <SearchPanel cards={allCards} onStudy={(cards) => start(cards, false)} />
+      </section>
 
       <section className="panel">
         <h2>1. Topics</h2>
@@ -82,7 +89,7 @@ export default function App() {
           <label className="check">
             <input type="checkbox" checked={doShuffle} onChange={(e) => setDoShuffle(e.target.checked)} /> Shuffle
           </label>
-          <button className="btn primary" disabled={!selected.length} onClick={start}>
+          <button className="btn primary" disabled={!selected.length} onClick={() => start()}>
             Start studying
           </button>
           <span className="msg">

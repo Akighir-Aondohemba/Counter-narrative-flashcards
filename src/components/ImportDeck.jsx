@@ -28,7 +28,7 @@ export default function ImportDeck({ onAdd }) {
 
   return (
     <details>
-      <summary>Add or import a deck (TSV: Question⇥Answer)</summary>
+      <summary>Add or import a deck (TSV: Question⇥Answer, optional ⇥Note)</summary>
       <div className="row">
         <input
           type="text"
@@ -41,7 +41,7 @@ export default function ImportDeck({ onAdd }) {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="One card per line: Question[TAB]Answer"
+          placeholder="One card per line: Question[TAB]Answer, optionally [TAB]Note"
         />
       </div>
       <div className="row">
