@@ -5,6 +5,7 @@ import ChipGroup from "./components/ChipGroup.jsx";
 import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
 import ExportPanel from "./components/ExportPanel.jsx";
+import { SearchBox, SearchResults } from "./components/SearchPanel.jsx";
 
 const STORE = "cn-flashcards-decks-v1"; // user-added decks, saved as { topic: tsvText }
 
@@ -28,6 +29,7 @@ export default function App() {
   const [kinds, setKinds] = useState(() => new Set(KINDS));
   const [doShuffle, setDoShuffle] = useState(true);
   const [session, setSession] = useState(null); // { cards, key }
+  const [query, setQuery] = useState("");
   const studyRef = useRef(null);
 
   useEffect(() => {
@@ -47,8 +49,10 @@ export default function App() {
     setter(next);
   };
 
-  function start() {
-    setSession({ cards: doShuffle ? shuffle(selected) : selected, key: Date.now() });
+  const allCards = Object.entries(decks).flatMap(([t, list]) => list.map((c) => ({ ...c, topic: t })));
+
+  function start(cards = selected, mix = doShuffle) {
+    setSession({ cards: mix ? shuffle(cards) : cards, key: Date.now() });
     setTimeout(() => studyRef.current?.scrollIntoView({ behavior: "smooth" }), 0);
   }
 
@@ -57,53 +61,104 @@ export default function App() {
     setTopics((prev) => new Set(prev).add(name));
   }
 
+  const voterCount = allCards.filter((c) => c.kind === "Voter Response").length;
+  const stats = [
+    [allCards.length, "cards"],
+    [Object.keys(decks).length, "topics"],
+    [voterCount, "voter responses"],
+  ];
+
   return (
-    <main>
-      <h1>Counter-Narrative Flashcards</h1>
-      <p className="sub">
-        Fact-checked answers to common narratives about the Tinubu (PBAT) administration. Pick topics and
-        card types, then study. Tap a card to show the answer.
-      </p>
-
-      <section className="panel">
-        <h2>1. Topics</h2>
-        <ChipGroup
-          items={Object.keys(decks).map((name) => ({ label: name, count: decks[name].length }))}
-          selected={topics}
-          onToggle={toggle(topics, setTopics)}
-        />
-        <h2 className="spaced">2. Card types</h2>
-        <ChipGroup
-          items={KINDS.map((k) => ({ label: k, count: inTopics.filter((c) => c.kind === k).length }))}
-          selected={kinds}
-          onToggle={toggle(kinds, setKinds)}
-        />
-        <div className="row">
-          <label className="check">
-            <input type="checkbox" checked={doShuffle} onChange={(e) => setDoShuffle(e.target.checked)} /> Shuffle
-          </label>
-          <button className="btn primary" disabled={!selected.length} onClick={start}>
-            Start studying
-          </button>
-          <span className="msg">
-            {selected.length} card{selected.length === 1 ? "" : "s"} selected
-          </span>
+    <>
+      <header className="hero">
+        <div className="hero-inner">
+          <p className="eyebrow">Voter engagement &amp; callers team</p>
+          <h1>Counter-Narrative Flashcards</h1>
+          <p className="lede">
+            Fact-checked replies to what voters say about the Tinubu (PBAT) administration. Search for a
+            phrase, or build a study set below.
+          </p>
+          <SearchBox query={query} onChange={setQuery} />
+          <ul className="stats">
+            {stats.map(([n, label]) => (
+              <li key={label}>
+                <b>{n}</b> {label}
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
+      </header>
 
-      {session && (
-        <section className="panel" ref={studyRef}>
-          <StudySession key={session.key} cards={session.cards} />
+      <main>
+        <SearchResults
+          cards={allCards}
+          query={query}
+          onStudy={(cards) => start(cards, false)}
+          onClear={() => setQuery("")}
+        />
+
+        <section className="panel">
+          <div className="step">
+            <span className="num">1</span>
+            <h2>Choose topics</h2>
+            <SelectAll all={Object.keys(decks)} set={topics} setter={setTopics} />
+          </div>
+          <ChipGroup
+            items={Object.keys(decks).map((name) => ({ label: name, count: decks[name].length }))}
+            selected={topics}
+            onToggle={toggle(topics, setTopics)}
+          />
+
+          <div className="step spaced">
+            <span className="num">2</span>
+            <h2>Choose card types</h2>
+            <SelectAll all={KINDS} set={kinds} setter={setKinds} />
+          </div>
+          <ChipGroup
+            items={KINDS.map((k) => ({ label: k, count: inTopics.filter((c) => c.kind === k).length }))}
+            selected={kinds}
+            onToggle={toggle(kinds, setKinds)}
+          />
+
+          <div className="startbar">
+            <div className="count">
+              <b>{selected.length}</b> card{selected.length === 1 ? "" : "s"} selected
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={doShuffle} onChange={(e) => setDoShuffle(e.target.checked)} />
+              <span className="track" aria-hidden="true" />
+              Shuffle
+            </label>
+            <button className="btn primary big" disabled={!selected.length} onClick={() => start()}>
+              Start studying →
+            </button>
+          </div>
         </section>
-      )}
 
-      <section className="panel">
-        <ImportDeck onAdd={addDeck} />
-      </section>
+        {session && (
+          <section className="panel study" ref={studyRef}>
+            <StudySession key={session.key} cards={session.cards} />
+          </section>
+        )}
 
-      <section className="panel">
-        <ExportPanel cards={selected} />
-      </section>
-    </main>
+        <section className="tools">
+          <div className="panel slim">
+            <ImportDeck onAdd={addDeck} />
+          </div>
+          <div className="panel slim">
+            <ExportPanel cards={selected} />
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+
+function SelectAll({ all, set, setter }) {
+  const allOn = all.every((x) => set.has(x));
+  return (
+    <button className="link" onClick={() => setter(new Set(allOn ? [] : all))}>
+      {allOn ? "Clear all" : "Select all"}
+    </button>
   );
 }
