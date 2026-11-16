@@ -1,10 +1,14 @@
 # Counter-Narrative Flashcards
 
-A React flashcard app for the voter-engagement and callers team. It gives fact-checked answers to common narratives about the Tinubu (PBAT) administration, in question-and-answer form.
+A React flashcard app for the voter-engagement and callers team. It gives fact-checked answers to common narratives about the Tinubu (PBAT) administration, and positive facts to share, in question-and-answer form.
 
-211 cards in 16 topics: Why Vote Again, Food & Cost of Living, Fuel Subsidy Removal, Electricity, Security, Minimum Wage, New Tax Laws, My State & LGA, Regional Inclusion, National Debt & Borrowing, Youth, Jobs & Japa, Corruption & Accountability, Renewed Hope Promises, Judiciary & Electoral Integrity, Personal Attacks, and Caller Technique.
+287 cards in two collections:
+
+**Counter-narratives:** 211 cards in 16 topics: Why Vote Again, Food & Cost of Living, Fuel Subsidy Removal, Electricity, Security, Minimum Wage, New Tax Laws, My State & LGA, Regional Inclusion, National Debt & Borrowing, Youth, Jobs & Japa, Corruption & Accountability, Renewed Hope Promises, Judiciary & Electoral Integrity, Personal Attacks, and Caller Technique.
 
 57 of them are **voter responses**: what a voter says, a 15-second reply, and a backup fact to use only if they push back.
+
+**Did You Know?:** 76 positive-impact facts in 10 themes: Economy & Revenue, Agriculture & Food, Roads, Rail & Ports, Power, Oil, Mining & Water, Social Support & Housing, Youth, Skills & Digital, Security & Safety, Fighting Corruption, Services & Nigeria Abroad, and In Your Zone. Each has a question, the fact, why it matters to voters, and its source.
 
 **Live app:** https://akighir-aondohemba.github.io/Counter-narrative-flashcards/
 
@@ -30,10 +34,14 @@ Then open the address it prints (usually http://localhost:5173).
 
 ## Using the app
 
+- The tabs at the top of **Choose what to study** switch between **Counter-narratives** and **Did You Know?**. Each has its own topics; card types apply to counter-narratives only.
+- **Did you know?** on the home screen shows a fact of the day (the same for the whole team, changing daily). Guess the answer, then tap to see it; **Next fact** shows another.
+- On a counter-narrative card, **Back it up: did you know?** offers a related positive fact, such as a power fact on an Electricity card, to share after the reply.
+
 - **Search cards** finds words or phrases in every card's question, answer, note and code, across all topics. Separate words must all appear; put a phrase in quotes ("student loan") to match it exactly. Type a card code such as `F03` to jump to that card. Long answers are cut to three lines; **Read more** shows the full answer and its push-back fact. **Study these** starts a session with just the matches.
 - Tap **Topics** or **Card types** (Voter Response, Definition, Application, Comparison, Example) to open a checklist and choose which cards to study. The checklist shows how many cards of each topic you've learned.
 - Tap a card to show the answer. On voter responses, tap **If they push back** to show the backup fact. **Got it** removes the card from this session; **Review again** moves it to the back. On a phone you can swipe the card right for "Got it" or left for "Review again".
-- **Copy reply** copies the answer, ready to paste into WhatsApp or SMS. **Read aloud** reads the card with the phone's built-in voice.
+- **Copy reply** copies the answer, ready to paste into WhatsApp or SMS. **Copy fact** on Did You Know cards also copies why it matters and the source. **Read aloud** reads the card with the phone's built-in voice.
 - The app remembers which cards you marked "Got it", on that phone or browser only. Turn on **Only cards I haven't learned** to skip them; **Reset** clears your progress.
 - **Share this selection** shares a link that opens the app with the same topics, card types and search already chosen, e.g. `?topics=security&types=voter-response`.
 - Cards that mention an upcoming deadline (such as "due 15 December 2026") show a warning once that date has passed, so callers check the fact before using it.
@@ -47,13 +55,13 @@ After the first visit, the app is saved on the phone and works without a connect
 
 ## Editing the cards
 
-Each topic is a plain text file in `src/decks/`. Every line is one card: the question, a tab character, then the answer. An optional third column, after another tab, holds a note: the "If they push back" fact on voter responses, or a tip on study cards. An optional fourth column holds the card's code from the printed Voter Response Cards (such as `F03`); leave the third column empty if a coded card has no note. There are no headers or labels.
+Each counter-narrative topic is a plain text file in `src/decks/`, and each Did You Know theme is one in `src/decks/did-you-know/`. Every line is one card: the question, a tab character, then the answer. An optional third column, after another tab, holds a note: the "If they push back" fact on voter responses, or a tip on study cards. An optional fourth column holds the card's code from the printed Voter Response Cards (such as `F03`); leave the third column empty if a coded card has no note. Did You Know cards use five columns: question, fact, why it matters, code (`DYK-E01`) and source. There are no headers or labels.
 
 ```
 What is the BAT-O-METER?<TAB>The AdvoKC Foundation's tracker of Tinubu's campaign promises.
 ```
 
-To add a topic, put a new `.tsv` file in `src/decks/` and add its file name and display name to the `TOPICS` list in `src/decks/index.js`.
+To add a topic, put a new `.tsv` file in the collection's folder and add its file name and display name to that collection's `topics` list in `src/decks/index.js`. `RELATED_FACTS` in the same file lists which Did You Know facts back up each counter-narrative topic.
 
 When you change the cards, update `CARDS_UPDATED` in `src/decks/index.js`; the app shows it as "Cards updated …".
 
@@ -71,5 +79,6 @@ The cards are drawn from the team's research documents (November 2026):
 - Youth and Japa narrative brief
 - Voter Engagement Playbook: Judicial Trust & Electoral Integrity
 - PBAT Voter Response Cards (77 cards, research cut-off 15 November 2026)
+- PBAT Did You Know? Impact Cards (76 cards, research cut-off 15 November 2026)
 
 The answers keep the documents' caveats, such as which allegations are unproven and which figures predate the administration. Keep those caveats when you edit cards.

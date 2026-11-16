@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { cardId, kindOf, parseTSV, passedDeadlines, searchCards, slug, toTSV } from "./cards.js";
+import { cardId, FACT, kindOf, parseTSV, passedDeadlines, searchCards, shareText, slug, toTSV } from "./cards.js";
 import { readLink, writeLink } from "./links.js";
 import { speakable } from "./device.js";
-import { builtInDecks } from "../decks/index.js";
+import { builtInDecks, COLLECTIONS, RELATED_FACTS, topicCollection } from "../decks/index.js";
 
 describe("kindOf", () => {
   it.each([
@@ -37,7 +37,7 @@ describe("parseTSV", () => {
   });
 
   it("round-trips through toTSV", () => {
-    const text = "What is X?\tX.\nWhy Y?\tBecause.\tA note.\nQ\tA\t\tT04\nQ2\tA2\tN\tF01";
+    const text = "What is X?\tX.\nWhy Y?\tBecause.\tA note.\nQ\tA\t\tT04\nQ2\tA2\tN\tF01\nQ3\tA3\tWhy\tDYK-E01\tFinance Ministry";
     expect(toTSV(parseTSV(text).cards)).toBe(text);
   });
 });
@@ -45,15 +45,33 @@ describe("parseTSV", () => {
 describe("built-in decks", () => {
   it("load every deck with only valid lines", () => {
     const names = Object.keys(builtInDecks);
-    expect(names).toHaveLength(16);
+    expect(names).toHaveLength(26);
     for (const name of names) expect(builtInDecks[name].length).toBeGreaterThan(0);
-    expect(names.reduce((n, name) => n + builtInDecks[name].length, 0)).toBe(211);
+    const count = (col) => names.filter((n) => topicCollection[n] === col).reduce((n, t) => n + builtInDecks[t].length, 0);
+    expect(count("replies")).toBe(211);
+    expect(count("facts")).toBe(76);
   });
 
-  it("give all 77 voter response cards a unique code", () => {
+  it("give every printed card a unique code (77 voter response, 76 Did You Know)", () => {
     const codes = Object.values(builtInDecks).flat().map((c) => c.code).filter(Boolean);
-    expect(codes).toHaveLength(77);
-    expect(new Set(codes).size).toBe(77);
+    expect(codes).toHaveLength(153);
+    expect(new Set(codes).size).toBe(153);
+  });
+
+  it("make every Did You Know card a fact with a reason and a source", () => {
+    const facts = COLLECTIONS[1].topics.flatMap(([, name]) => builtInDecks[name]);
+    for (const c of facts) {
+      expect(c.kind).toBe(FACT);
+      expect(c.note && c.source && c.code.startsWith("DYK-")).toBeTruthy();
+    }
+  });
+
+  it("link counter-narrative topics only to facts that exist", () => {
+    const codes = new Set(Object.values(builtInDecks).flat().map((c) => c.code));
+    for (const [topic, list] of Object.entries(RELATED_FACTS)) {
+      expect(topicCollection[topic]).toBe("replies");
+      for (const code of list) expect(codes.has(`DYK-${code}`)).toBe(true);
+    }
   });
 
   it("flag no passed deadlines as of the last content update", () => {
@@ -109,6 +127,13 @@ describe("passedDeadlines", () => {
     expect(passedDeadlines({ a: "15 states had taken control by April 2026 (deadline 29 May 2025)." }, new Date(2027, 0, 1))).toEqual([]));
 });
 
+describe("shareText", () => {
+  it("is the answer for replies", () => expect(shareText({ q: "Q", a: "A", note: "N", kind: "Definition" })).toBe("A"));
+  it("adds why it matters and the source for facts", () =>
+    expect(shareText({ q: "Q", a: "A", note: "N", source: "S", kind: FACT })).toBe("A\n\nN\n\nSource: S"));
+  it("can force a type when parsing", () => expect(parseTSV("How much?\tA", { kind: FACT }).cards[0].kind).toBe(FACT));
+});
+
 describe("ids and slugs", () => {
   it("prefer the printed code", () => {
     expect(cardId({ code: "W01", q: "Q", topic: "T" })).toBe("W01");
@@ -126,7 +151,13 @@ describe("shareable links", () => {
     const state = { topics: new Set(["Electricity", "Food & Cost of Living"]), kinds: new Set(["Voter Response"]), query: "wage bill", onlyNew: true };
     const link = writeLink(state, topics, kinds);
     expect(link).toBe("?topics=electricity,food-cost-of-living&types=voter-response&q=wage+bill&new=1");
-    expect(readLink(link, topics, kinds)).toEqual(state);
+    expect(readLink(link, topics, kinds)).toEqual({ ...state, set: "replies" });
+  });
+  it("remember the Did You Know collection", () => {
+    const state = { topics: new Set(topics), kinds: new Set(kinds), query: "", onlyNew: false, set: "facts" };
+    expect(writeLink(state, topics, kinds)).toBe("?set=facts");
+    expect(readLink("?set=facts", topics, kinds).set).toBe("facts");
+    expect(readLink("", topics, kinds).set).toBe("replies");
   });
   it("fall back to everything for unknown names", () => {
     expect(readLink("?topics=nothing", topics, kinds).topics).toBeNull();
@@ -138,4 +169,12 @@ describe("speakable", () => {
     expect(speakable("₦1.93 trillion, ₦70,000, ₦15.8tn and $50bn.")).toBe(
       "1.93 trillion naira, 70,000 naira, 15.8 trillion naira and 50 billion dollars.",
     ));
+});
+
+describe("fact of the day", async () => {
+  const { dayIndex } = await import("../components/FactOfTheDay.jsx");
+  it("is the same all day and changes the next day", () => {
+    expect(dayIndex(76, new Date(2026, 10, 16, 1))).toBe(dayIndex(76, new Date(2026, 10, 16, 23)));
+    expect(dayIndex(76, new Date(2026, 10, 17))).toBe((dayIndex(76, new Date(2026, 10, 16)) + 1) % 76);
+  });
 });

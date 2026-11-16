@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builtInDecks, CARDS_UPDATED } from "./decks/index.js";
-import { cardId, KINDS, parseTSV, shuffle } from "./lib/cards.js";
+import { builtInDecks, CARDS_UPDATED, COLLECTIONS, RELATED_FACTS, topicCollection } from "./decks/index.js";
+import { cardId, FACT, KINDS, parseTSV, shuffle } from "./lib/cards.js";
 import { readLink, writeLink } from "./lib/links.js";
 import { shareLink } from "./lib/device.js";
 import FilterPicker from "./components/FilterPicker.jsx";
@@ -8,6 +8,7 @@ import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
 import ExportPanel from "./components/ExportPanel.jsx";
 import { SearchBox, SearchResults } from "./components/SearchPanel.jsx";
+import FactOfTheDay from "./components/FactOfTheDay.jsx";
 
 const STORE = "cn-flashcards-decks-v1"; // user-added decks, saved as { topic: tsvText }
 const PROGRESS = "cn-flashcards-progress-v1"; // ids of cards marked "Got it", saved as an array
@@ -42,12 +43,18 @@ export default function App() {
   }, [userDecks]);
   const topicNames = Object.keys(decks);
 
-  // A shared link (?topics=…&types=…&q=…&new=1) sets the starting selection.
+  // A shared link (?set=…&topics=…&types=…&q=…&new=1) sets the starting selection.
   const [link] = useState(() => readLink(window.location.search, topicNames, KINDS));
-  const [topics, setTopics] = useState(() => link.topics || new Set(topicNames));
+  // A link names topics from one collection; the other collection keeps all of its topics.
+  const [topics, setTopics] = useState(() => {
+    if (!link.topics) return new Set(topicNames);
+    const linked = new Set([...link.topics].map((t) => topicCollection[t] || "replies"));
+    return new Set([...link.topics, ...topicNames.filter((t) => !linked.has(topicCollection[t] || "replies"))]);
+  });
   const [kinds, setKinds] = useState(() => link.kinds || new Set(KINDS));
   const [query, setQuery] = useState(link.query);
   const [onlyNew, setOnlyNew] = useState(link.onlyNew);
+  const [set, setSet] = useState(link.set); // which collection: "replies" (counter-narratives) or "facts"
   const [doShuffle, setDoShuffle] = useState(true);
   const [session, setSession] = useState(null); // { cards, key }
   const [learned, setLearned] = useState(() => new Set(load(PROGRESS, [])));
@@ -59,7 +66,11 @@ export default function App() {
   useEffect(() => save(PROGRESS, [...learned]), [learned]);
 
   // Keep the address bar in step with the selection, so it can be bookmarked or shared.
-  const search = writeLink({ topics, kinds, query, onlyNew }, topicNames, KINDS);
+  const search = writeLink(
+    { topics, kinds: set === "facts" ? new Set(KINDS) : kinds, query, onlyNew, set },
+    topicNames.filter((t) => (topicCollection[t] || "replies") === set),
+    KINDS,
+  );
   useEffect(() => {
     try {
       window.history.replaceState(null, "", `${window.location.pathname}${search}${window.location.hash}`);
@@ -95,11 +106,27 @@ export default function App() {
   }, [shareMsg]);
 
   const isLearned = (c) => learned.has(cardId(c));
-  const allCards = Object.entries(decks).flatMap(([t, list]) => list.map((c) => ({ ...c, topic: t })));
-  const inTopics = allCards.filter((c) => topics.has(c.topic));
-  const ofKinds = inTopics.filter((c) => kinds.has(c.kind));
+  const collectionOf = (topic) => topicCollection[topic] || "replies"; // decks users add are replies
+  const allCards = Object.entries(decks).flatMap(([t, list]) =>
+    list.map((c) => ({ ...c, topic: t, collection: collectionOf(t) })),
+  );
+  const facts = allCards.filter((c) => c.kind === FACT);
+  const inSet = allCards.filter((c) => c.collection === set);
+  const setTopicNames = topicNames.filter((t) => collectionOf(t) === set);
+  const inTopics = inSet.filter((c) => topics.has(c.topic));
+  const ofKinds = set === "facts" ? inTopics : inTopics.filter((c) => kinds.has(c.kind));
   const selected = onlyNew ? ofKinds.filter((c) => !isLearned(c)) : ofKinds;
-  const learnedCount = allCards.filter(isLearned).length;
+  const learnedCount = inSet.filter(isLearned).length;
+
+  // A positive fact to back up a counter-narrative card, picked from its topic's list.
+  // The same card always gets the same fact.
+  const relatedFact = (card) => {
+    const codes = (RELATED_FACTS[card.topic] || []).map((c) => `DYK-${c}`);
+    const pool = facts.filter((f) => codes.includes(f.code));
+    if (!pool.length) return null;
+    const h = [...cardId(card)].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    return pool[h % pool.length];
+  };
 
   const toggle = (set, setter) => (value) => {
     const next = new Set(set);
@@ -138,9 +165,11 @@ export default function App() {
   const voterCount = allCards.filter((c) => c.kind === "Voter Response").length;
   const stats = [
     [allCards.length, "cards"],
-    [topicNames.length, "topics"],
     [voterCount, "voter responses"],
+    [facts.length, "impact facts"],
   ];
+  const setPickerTopics = (list) =>
+    setTopics((prev) => new Set([...[...prev].filter((t) => collectionOf(t) !== set), ...list]));
 
   return (
     <>
@@ -149,8 +178,8 @@ export default function App() {
           <p className="eyebrow">Voter engagement &amp; callers team</p>
           <h1>Counter-Narrative Flashcards</h1>
           <p className="lede">
-            Fact-checked replies to what voters say about the Tinubu (PBAT) administration. Search for a
-            phrase, or build a study set below.
+            Fact-checked replies to what voters say about the Tinubu (PBAT) administration, and positive
+            facts to share. Search for a phrase, or build a study set below.
           </p>
           <SearchBox query={query} onChange={setQuery} />
           <ul className="stats">
@@ -180,6 +209,8 @@ export default function App() {
           isLearned={isLearned}
         />
 
+        <FactOfTheDay facts={facts} />
+
         <section className="panel">
           <div className="panel-head">
             <h2>Choose what to study</h2>
@@ -193,27 +224,46 @@ export default function App() {
               {shareMsg || "Share this selection"}
             </button>
           </div>
-          <div className="pickers">
+          <div className="tabs" role="tablist" aria-label="Collection">
+            {COLLECTIONS.map((col) => (
+              <button
+                key={col.id}
+                type="button"
+                role="tab"
+                aria-selected={set === col.id}
+                className={`tab ${col.id}`}
+                onClick={() => setSet(col.id)}
+              >
+                <span className="tab-name">{col.name}</span>
+                <span className="tab-sub">
+                  {allCards.filter((c) => c.collection === col.id).length} cards · {col.blurb}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className={set === "facts" ? "pickers single" : "pickers"}>
             <FilterPicker
-              title="Topics"
-              items={topicNames.map((name) => {
-                const list = allCards.filter((c) => c.topic === name);
+              title={set === "facts" ? "Themes" : "Topics"}
+              items={setTopicNames.map((name) => {
+                const list = inSet.filter((c) => c.topic === name);
                 return { label: name, count: list.length, learned: list.filter(isLearned).length };
               })}
               selected={topics}
               onToggle={toggle(topics, setTopics)}
-              onSetAll={(list) => setTopics(new Set(list))}
+              onSetAll={setPickerTopics}
             />
-            <FilterPicker
-              title="Card types"
-              items={KINDS.map((k) => {
-                const list = inTopics.filter((c) => c.kind === k);
-                return { label: k, count: list.length, learned: list.filter(isLearned).length };
-              })}
-              selected={kinds}
-              onToggle={toggle(kinds, setKinds)}
-              onSetAll={(list) => setKinds(new Set(list))}
-            />
+            {set === "replies" && (
+              <FilterPicker
+                title="Card types"
+                items={KINDS.map((k) => {
+                  const list = inTopics.filter((c) => c.kind === k);
+                  return { label: k, count: list.length, learned: list.filter(isLearned).length };
+                })}
+                selected={kinds}
+                onToggle={toggle(kinds, setKinds)}
+                onSetAll={(list) => setKinds(new Set(list))}
+              />
+            )}
           </div>
 
           <div className="learned-row">
@@ -223,7 +273,7 @@ export default function App() {
               Only cards I haven't learned
             </label>
             <span className="msg">
-              {learnedCount} of {allCards.length} learned
+              {learnedCount} of {inSet.length} learned
               {learnedCount > 0 && (
                 <>
                   {" · "}
@@ -257,6 +307,7 @@ export default function App() {
               cards={session.cards}
               onGotIt={(c) => mark(c, true)}
               onAgain={(c) => mark(c, false)}
+              relatedFact={relatedFact}
             />
           </section>
         )}

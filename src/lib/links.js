@@ -1,7 +1,8 @@
 import { slug } from "./cards.js";
 
-// Shareable links keep the selection in the address: ?topics=electricity,security&types=voter-response&q=wage&new=1
-// Anything left at its default (all topics, all types, empty search, all cards) is left out.
+// Shareable links keep the selection in the address:
+// ?set=facts&topics=electricity,security&types=voter-response&q=wage&new=1
+// Anything left at its default (counter-narratives, all topics, all types, empty search, all cards) is left out.
 
 export function readLink(search, topicNames, kindNames) {
   const p = new URLSearchParams(search);
@@ -16,11 +17,13 @@ export function readLink(search, topicNames, kindNames) {
     kinds: pick("types", kindNames),
     query: p.get("q") || "",
     onlyNew: p.get("new") === "1",
+    set: p.get("set") === "facts" ? "facts" : "replies",
   };
 }
 
-export function writeLink({ topics, kinds, query, onlyNew }, topicNames, kindNames) {
+export function writeLink({ topics, kinds, query, onlyNew, set = "replies" }, topicNames, kindNames) {
   const p = new URLSearchParams();
+  if (set === "facts") p.set("set", "facts");
   const put = (key, set, names) => {
     if (names.every((n) => set.has(n))) return;
     p.set(key, names.filter((n) => set.has(n)).map(slug).join(","));

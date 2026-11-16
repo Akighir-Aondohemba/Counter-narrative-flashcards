@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { noteLabel, searchCards, searchTerms } from "../lib/cards.js";
+import { FACT, noteLabel, searchCards, searchTerms, shareText } from "../lib/cards.js";
 import Highlight from "./Highlight.jsx";
 import { CopyButton, StaleWarning } from "./CardTools.jsx";
 
@@ -69,12 +69,12 @@ function ResultItem({ card: c, terms, learned }) {
   const long = c.a.length > LONG || Boolean(c.note);
   const collapsed = long && !open;
   return (
-    <li className={c.kind === "Voter Response" ? "voter" : ""}>
+    <li className={c.kind === "Voter Response" ? "voter" : c.kind === FACT ? "fact" : ""}>
       <div className="meta">
-        <span className="tag">{c.kind}</span>
+        <span className="tag">{c.kind === FACT ? "Did you know?" : c.kind}</span>
         {c.code && (
           <span className="code">
-            <Highlight text={c.code} terms={terms} />
+            <Highlight text={c.code.replace(/^DYK-/, "")} terms={terms} />
           </span>
         )}
         {c.topic}
@@ -91,6 +91,11 @@ function ResultItem({ card: c, terms, learned }) {
           <strong>{noteLabel(c)}</strong> <Highlight text={c.note} terms={terms} />
         </div>
       )}
+      {c.source && !collapsed && (
+        <p className="source">
+          Source: <Highlight text={c.source} terms={terms} />
+        </p>
+      )}
       <StaleWarning card={c} />
       <div className="result-actions">
         {long && (
@@ -98,7 +103,7 @@ function ResultItem({ card: c, terms, learned }) {
             {open ? "Show less ▴" : "Read more ▾"}
           </button>
         )}
-        <CopyButton text={c.a} />
+        <CopyButton text={shareText(c)} label={c.kind === FACT ? "Copy fact" : "Copy reply"} />
       </div>
     </li>
   );
