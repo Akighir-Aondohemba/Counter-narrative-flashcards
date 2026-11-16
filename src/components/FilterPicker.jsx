@@ -10,7 +10,8 @@ export function summary(items, selected) {
 }
 
 // A button showing what is selected, which opens a checkbox list as a sheet
-// (bottom of the screen on phones, centred on wider screens).
+// (bottom of the screen on phones, centred on wider screens). Items may carry a
+// `learned` count, shown as "3/5" with a small progress bar.
 export default function FilterPicker({ title, items, selected, onToggle, onSetAll }) {
   const dialog = useRef(null);
   const allOn = items.every((i) => selected.has(i.label));
@@ -37,13 +38,22 @@ export default function FilterPicker({ title, items, selected, onToggle, onSetAl
           </button>
         </div>
         <ul className="options">
-          {items.map(({ label, count }) => (
+          {items.map(({ label, count, learned = 0 }) => (
             <li key={label}>
               <label>
                 <input type="checkbox" checked={selected.has(label)} onChange={() => onToggle(label)} />
                 <span className="box" aria-hidden="true" />
-                <span className="opt-label">{label}</span>
-                <small>{count}</small>
+                <span className="opt-label">
+                  {label}
+                  {learned > 0 && (
+                    <span className="opt-progress" aria-label={`${learned} of ${count} learned`}>
+                      <span style={{ width: `${(learned / count) * 100}%` }} />
+                    </span>
+                  )}
+                </span>
+                <small className={learned === count && count > 0 ? "complete" : ""}>
+                  {learned > 0 ? `${learned}/${count}` : count}
+                </small>
               </label>
             </li>
           ))}

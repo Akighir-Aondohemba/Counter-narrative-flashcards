@@ -80,7 +80,6 @@ main { position: relative; z-index: 2; max-width: 800px; margin: -40px auto 0; p
 .empty { color: var(--muted); margin: 0; }
 h2 { font-size: 1.05rem; margin: 0; font-weight: 700; }
 
-.panel-title { margin-bottom: 14px; }
 .link {
   border: 0; background: none; padding: 4px 2px; cursor: pointer; color: var(--accent-strong);
   font-weight: 600; font-size: .88rem;
@@ -297,3 +296,67 @@ pre.tsv {
   .card .a { font-size: .97rem; line-height: 1.55; }
   .card .hint { align-self: flex-start; }
 }
+
+/* Header extras */
+.updated { margin: 10px 0 0; font-size: .8rem; color: rgba(255, 255, 255, .7); }
+
+/* Card codes, learned ticks and deadline warnings */
+.code {
+  font: 700 .72rem/1 ui-monospace, Menlo, Consolas, monospace; padding: 4px 7px; border-radius: 6px;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
+}
+.learned { color: var(--accent-strong); font-weight: 700; }
+.stale {
+  margin: 12px 0 0; padding: 9px 12px; border-radius: 10px; text-align: left;
+  background: var(--gold-soft); color: var(--ink); font-size: .85rem; border: 1px solid var(--gold);
+}
+
+/* Copy / read-aloud buttons */
+.tools-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; justify-content: center; }
+.tool {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: .85rem; font-weight: 600;
+}
+.tool:hover { border-color: var(--accent); }
+.tool[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+.tool svg {
+  width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.result-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.result-actions .link.more { margin: 0; }
+.result-actions .tool { margin-left: auto; }
+
+/* Swipe */
+.card-wrap { position: relative; }
+.study { overflow: hidden; }
+.card.dragging { transition: none; cursor: grabbing; }
+.swipe-label {
+  position: absolute; top: 50%; transform: translateY(-50%); padding: 8px 14px; border-radius: 999px;
+  font-weight: 800; opacity: 0; transition: opacity .15s; pointer-events: none;
+}
+.swipe-label.got { left: 8px; background: var(--accent); color: var(--accent-ink); }
+.swipe-label.again { right: 8px; background: var(--gold); color: #2b1d00; }
+.swipe-label.on { opacity: 1; }
+.swipe-tip { display: none; text-align: center; color: var(--muted); font-size: .8rem; margin: 12px 0 0; }
+@media (hover: none) and (pointer: coarse) {
+  .swipe-tip { display: block; }
+  .keys { display: none; }
+}
+
+/* Progress in the picker sheet and on the panel */
+.opt-label { display: flex; flex-direction: column; gap: 4px; }
+.opt-progress { display: block; height: 4px; width: 100%; max-width: 160px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.opt-progress span { display: block; height: 100%; background: var(--accent); }
+.options small.complete { background: var(--accent); color: var(--accent-ink); }
+.learned-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 16px; }
+.link.small { font-size: .85rem; padding: 0; }
+.link.share { display: inline-flex; align-items: center; gap: 6px; }
+.link.share svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.panel-head h2 { font-size: 1.05rem; }
+.hero-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.hero-foot .updated { margin: 0; }
+.install {
+  border: 1px solid rgba(255, 255, 255, .4); background: rgba(255, 255, 255, .14); color: #fff;
+  padding: 7px 14px; border-radius: 999px; font-weight: 700; font-size: .85rem; cursor: pointer;
+}
+.install:hover { background: rgba(255, 255, 255, .24); }

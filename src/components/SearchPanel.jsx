@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { noteLabel, searchCards, searchTerms } from "../lib/cards.js";
 import Highlight from "./Highlight.jsx";
+import { CopyButton, StaleWarning } from "./CardTools.jsx";
 
 // The search box. It sits in the page header; results show in <SearchResults>.
 export function SearchBox({ query, onChange }) {
@@ -15,7 +16,7 @@ export function SearchBox({ query, onChange }) {
         type="search"
         value={query}
         onChange={(e) => onChange(e.target.value)}
-        placeholder='Search words or "a phrase"'
+        placeholder='Search words or a code (F03)'
         aria-label="Search all cards for words or a phrase"
         autoComplete="off"
       />
@@ -24,7 +25,7 @@ export function SearchBox({ query, onChange }) {
 }
 
 // Matches from every card in every topic, whatever topics and types are selected below.
-export function SearchResults({ cards, query, onStudy, onClear }) {
+export function SearchResults({ cards, query, onStudy, onClear, isLearned }) {
   const terms = searchTerms(query);
   if (!terms.length) return null;
   const results = searchCards(cards, query);
@@ -52,7 +53,7 @@ export function SearchResults({ cards, query, onStudy, onClear }) {
       ) : (
         <ol className="results">
           {results.map((c, i) => (
-            <ResultItem key={`${c.topic}|${c.q}|${i}`} card={c} terms={terms} />
+            <ResultItem key={`${c.topic}|${c.q}|${i}`} card={c} terms={terms} learned={isLearned?.(c)} />
           ))}
         </ol>
       )}
@@ -63,7 +64,7 @@ export function SearchResults({ cards, query, onStudy, onClear }) {
 // Long answers start clamped to a few lines; "Read more" shows the whole answer and the note.
 const LONG = 170; // characters
 
-function ResultItem({ card: c, terms }) {
+function ResultItem({ card: c, terms, learned }) {
   const [open, setOpen] = useState(false);
   const long = c.a.length > LONG || Boolean(c.note);
   const collapsed = long && !open;
@@ -71,7 +72,13 @@ function ResultItem({ card: c, terms }) {
     <li className={c.kind === "Voter Response" ? "voter" : ""}>
       <div className="meta">
         <span className="tag">{c.kind}</span>
+        {c.code && (
+          <span className="code">
+            <Highlight text={c.code} terms={terms} />
+          </span>
+        )}
         {c.topic}
+        {learned && <span className="learned">✓ Learned</span>}
       </div>
       <div className="rq">
         <Highlight text={c.q} terms={terms} />
@@ -84,11 +91,15 @@ function ResultItem({ card: c, terms }) {
           <strong>{noteLabel(c)}</strong> <Highlight text={c.note} terms={terms} />
         </div>
       )}
-      {long && (
-        <button type="button" className="link more" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          {open ? "Show less ▴" : "Read more ▾"}
-        </button>
-      )}
+      <StaleWarning card={c} />
+      <div className="result-actions">
+        {long && (
+          <button type="button" className="link more" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+            {open ? "Show less ▴" : "Read more ▾"}
+          </button>
+        )}
+        <CopyButton text={c.a} />
+      </div>
     </li>
   );
 }

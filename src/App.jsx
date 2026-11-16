@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builtInDecks } from "./decks/index.js";
-import { KINDS, parseTSV, shuffle } from "./lib/cards.js";
+import { builtInDecks, CARDS_UPDATED } from "./decks/index.js";
+import { cardId, KINDS, parseTSV, shuffle } from "./lib/cards.js";
+import { readLink, writeLink } from "./lib/links.js";
+import { shareLink } from "./lib/device.js";
 import FilterPicker from "./components/FilterPicker.jsx";
 import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
@@ -8,48 +10,108 @@ import ExportPanel from "./components/ExportPanel.jsx";
 import { SearchBox, SearchResults } from "./components/SearchPanel.jsx";
 
 const STORE = "cn-flashcards-decks-v1"; // user-added decks, saved as { topic: tsvText }
+const PROGRESS = "cn-flashcards-progress-v1"; // ids of cards marked "Got it", saved as an array
 
-function loadUserDecks() {
+function load(key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(STORE)) || {};
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
   } catch {
-    return {};
+    return fallback;
+  }
+}
+function save(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable: this lasts for this visit only */
   }
 }
 
+const updatedLabel = new Date(`${CARDS_UPDATED}T12:00:00`).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 export default function App() {
-  const [userDecks, setUserDecks] = useState(loadUserDecks);
+  const [userDecks, setUserDecks] = useState(() => load(STORE, {}));
   const decks = useMemo(() => {
     const all = { ...builtInDecks };
     for (const [name, tsv] of Object.entries(userDecks)) all[name] = parseTSV(tsv).cards;
     return all;
   }, [userDecks]);
+  const topicNames = Object.keys(decks);
 
-  const [topics, setTopics] = useState(() => new Set(Object.keys(decks)));
-  const [kinds, setKinds] = useState(() => new Set(KINDS));
+  // A shared link (?topics=…&types=…&q=…&new=1) sets the starting selection.
+  const [link] = useState(() => readLink(window.location.search, topicNames, KINDS));
+  const [topics, setTopics] = useState(() => link.topics || new Set(topicNames));
+  const [kinds, setKinds] = useState(() => link.kinds || new Set(KINDS));
+  const [query, setQuery] = useState(link.query);
+  const [onlyNew, setOnlyNew] = useState(link.onlyNew);
   const [doShuffle, setDoShuffle] = useState(true);
   const [session, setSession] = useState(null); // { cards, key }
-  const [query, setQuery] = useState("");
+  const [learned, setLearned] = useState(() => new Set(load(PROGRESS, [])));
+  const [shareMsg, setShareMsg] = useState("");
+  const [installPrompt, setInstallPrompt] = useState(null); // Android/Chrome "add to home screen" offer
   const studyRef = useRef(null);
 
+  useEffect(() => save(STORE, userDecks), [userDecks]);
+  useEffect(() => save(PROGRESS, [...learned]), [learned]);
+
+  // Keep the address bar in step with the selection, so it can be bookmarked or shared.
+  const search = writeLink({ topics, kinds, query, onlyNew }, topicNames, KINDS);
   useEffect(() => {
     try {
-      localStorage.setItem(STORE, JSON.stringify(userDecks));
+      window.history.replaceState(null, "", `${window.location.pathname}${search}${window.location.hash}`);
     } catch {
-      /* storage unavailable: decks last for this visit only */
+      /* some embedded browsers block this */
     }
-  }, [userDecks]);
+  }, [search]);
 
-  const inTopics = [...topics].flatMap((t) => (decks[t] || []).map((c) => ({ ...c, topic: t })));
-  const selected = inTopics.filter((c) => kinds.has(c.kind));
+  useEffect(() => {
+    const offer = (e) => {
+      e.preventDefault(); // show our own button instead of the browser's banner
+      setInstallPrompt(e);
+    };
+    const done = () => setInstallPrompt(null);
+    window.addEventListener("beforeinstallprompt", offer);
+    window.addEventListener("appinstalled", done);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", offer);
+      window.removeEventListener("appinstalled", done);
+    };
+  }, []);
+
+  async function install() {
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => {});
+    setInstallPrompt(null);
+  }
+
+  useEffect(() => {
+    if (!shareMsg) return;
+    const t = setTimeout(() => setShareMsg(""), 2500);
+    return () => clearTimeout(t);
+  }, [shareMsg]);
+
+  const isLearned = (c) => learned.has(cardId(c));
+  const allCards = Object.entries(decks).flatMap(([t, list]) => list.map((c) => ({ ...c, topic: t })));
+  const inTopics = allCards.filter((c) => topics.has(c.topic));
+  const ofKinds = inTopics.filter((c) => kinds.has(c.kind));
+  const selected = onlyNew ? ofKinds.filter((c) => !isLearned(c)) : ofKinds;
+  const learnedCount = allCards.filter(isLearned).length;
 
   const toggle = (set, setter) => (value) => {
     const next = new Set(set);
     next.has(value) ? next.delete(value) : next.add(value);
     setter(next);
   };
-
-  const allCards = Object.entries(decks).flatMap(([t, list]) => list.map((c) => ({ ...c, topic: t })));
+  const mark = (card, on) =>
+    setLearned((prev) => {
+      const next = new Set(prev);
+      on ? next.add(cardId(card)) : next.delete(cardId(card));
+      return next;
+    });
 
   function start(cards = selected, mix = doShuffle) {
     setSession({ cards: mix ? shuffle(cards) : cards, key: Date.now() });
@@ -61,10 +123,22 @@ export default function App() {
     setTopics((prev) => new Set(prev).add(name));
   }
 
+  function resetProgress() {
+    if (window.confirm("Clear your learning progress on this phone? Every card will count as not learned.")) {
+      setLearned(new Set());
+    }
+  }
+
+  async function share() {
+    const url = `${window.location.origin}${window.location.pathname}${search}`;
+    const result = await shareLink(url, "Counter-Narrative Flashcards");
+    setShareMsg(result === "copied" ? "Link copied ✓" : result === "failed" ? "Couldn't share the link" : "");
+  }
+
   const voterCount = allCards.filter((c) => c.kind === "Voter Response").length;
   const stats = [
     [allCards.length, "cards"],
-    [Object.keys(decks).length, "topics"],
+    [topicNames.length, "topics"],
     [voterCount, "voter responses"],
   ];
 
@@ -86,6 +160,14 @@ export default function App() {
               </li>
             ))}
           </ul>
+          <div className="hero-foot">
+            <p className="updated">Cards updated {updatedLabel} · works offline after your first visit</p>
+            {installPrompt && (
+              <button type="button" className="install" onClick={install}>
+                ⤓ Install app
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -95,25 +177,62 @@ export default function App() {
           query={query}
           onStudy={(cards) => start(cards, false)}
           onClear={() => setQuery("")}
+          isLearned={isLearned}
         />
 
         <section className="panel">
-          <h2 className="panel-title">Choose what to study</h2>
+          <div className="panel-head">
+            <h2>Choose what to study</h2>
+            <button type="button" className="link share" onClick={share}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+              </svg>
+              {shareMsg || "Share this selection"}
+            </button>
+          </div>
           <div className="pickers">
             <FilterPicker
               title="Topics"
-              items={Object.keys(decks).map((name) => ({ label: name, count: decks[name].length }))}
+              items={topicNames.map((name) => {
+                const list = allCards.filter((c) => c.topic === name);
+                return { label: name, count: list.length, learned: list.filter(isLearned).length };
+              })}
               selected={topics}
               onToggle={toggle(topics, setTopics)}
               onSetAll={(list) => setTopics(new Set(list))}
             />
             <FilterPicker
               title="Card types"
-              items={KINDS.map((k) => ({ label: k, count: inTopics.filter((c) => c.kind === k).length }))}
+              items={KINDS.map((k) => {
+                const list = inTopics.filter((c) => c.kind === k);
+                return { label: k, count: list.length, learned: list.filter(isLearned).length };
+              })}
               selected={kinds}
               onToggle={toggle(kinds, setKinds)}
               onSetAll={(list) => setKinds(new Set(list))}
             />
+          </div>
+
+          <div className="learned-row">
+            <label className="switch">
+              <input type="checkbox" checked={onlyNew} onChange={(e) => setOnlyNew(e.target.checked)} />
+              <span className="track" aria-hidden="true" />
+              Only cards I haven't learned
+            </label>
+            <span className="msg">
+              {learnedCount} of {allCards.length} learned
+              {learnedCount > 0 && (
+                <>
+                  {" · "}
+                  <button type="button" className="link small" onClick={resetProgress}>
+                    Reset
+                  </button>
+                </>
+              )}
+            </span>
           </div>
 
           <div className="startbar">
@@ -133,7 +252,12 @@ export default function App() {
 
         {session && (
           <section className="panel study" ref={studyRef}>
-            <StudySession key={session.key} cards={session.cards} />
+            <StudySession
+              key={session.key}
+              cards={session.cards}
+              onGotIt={(c) => mark(c, true)}
+              onAgain={(c) => mark(c, false)}
+            />
           </section>
         )}
 
@@ -149,4 +273,3 @@ export default function App() {
     </>
   );
 }
-
