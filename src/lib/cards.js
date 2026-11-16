@@ -1,4 +1,6 @@
 export const KINDS = ["Voter Response", "Definition", "Application", "Comparison", "Example"];
+// Every card in the "Did You Know?" collection has this type, whatever its wording.
+export const FACT = "Did You Know";
 
 // Infer a card's type from how its question is worded, so users can filter by type.
 // A question in quotation marks (or a stage direction in brackets) is something a voter says.
@@ -13,20 +15,23 @@ export function kindOf(question) {
 }
 
 // Label for a card's optional third column: the backup fact on voter responses, a tip otherwise.
-export const noteLabel = (card) => (card.kind === "Voter Response" ? "If they push back" : "Note");
+export const noteLabel = (card) =>
+  card.kind === "Voter Response" ? "If they push back" : card.kind === FACT ? "Why it matters to voters" : "Note";
 
-// Parse "Question<TAB>Answer[<TAB>Note[<TAB>Code]]" lines. The note may be empty when a code follows.
+// Parse "Question<TAB>Answer[<TAB>Note[<TAB>Code[<TAB>Source]]]" lines. Middle columns may be empty
+// when a later one follows. `kind` overrides the type worked out from the question.
 // Returns valid cards and the 1-based numbers of bad lines.
-export function parseTSV(text) {
+export function parseTSV(text, { kind } = {}) {
   const cards = [];
   const bad = [];
   text.split(/\r?\n/).forEach((line, i) => {
     if (!line.trim()) return;
-    const [q = "", a = "", note = "", code = ""] = line.split("\t").map((s) => s.trim());
+    const [q = "", a = "", note = "", code = "", source = ""] = line.split("\t").map((s) => s.trim());
     if (!q || !a) return bad.push(i + 1);
-    const card = { q, a, kind: kindOf(q) };
+    const card = { q, a, kind: kind || kindOf(q) };
     if (note) card.note = note;
     if (code) card.code = code;
+    if (source) card.source = source;
     cards.push(card);
   });
   return { cards, bad };
@@ -35,12 +40,17 @@ export function parseTSV(text) {
 export function toTSV(cards) {
   return cards
     .map((c) => {
-      const cols = [c.q, c.a];
-      if (c.note || c.code) cols.push(c.note || "");
-      if (c.code) cols.push(c.code);
+      const cols = [c.q, c.a, c.note || "", c.code || "", c.source || ""];
+      while (cols.length > 2 && !cols[cols.length - 1]) cols.pop();
       return cols.join("\t");
     })
     .join("\n");
+}
+
+// The text to copy or send for a card: the answer, plus why it matters and the source for facts.
+export function shareText(c) {
+  if (c.kind !== FACT) return c.a;
+  return [c.a, c.note, c.source && `Source: ${c.source}`].filter(Boolean).join("\n\n");
 }
 
 // A stable id for remembering progress: the printed card code when there is one.
@@ -88,12 +98,12 @@ export function searchTerms(query) {
   });
 }
 
-// Cards containing every search term in the question, answer, note, topic name or card code.
+// Cards containing every search term in the question, answer, note, topic name, card code or source.
 export function searchCards(cards, query) {
   const terms = searchTerms(query);
   if (!terms.length) return [];
   return cards.filter((c) => {
-    const text = [c.q, c.a, c.note, c.topic, c.code].filter(Boolean).join("\n");
+    const text = [c.q, c.a, c.note, c.topic, c.code, c.source].filter(Boolean).join("\n");
     return terms.every((re) => re.test(text));
   });
 }

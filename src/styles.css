@@ -1,7 +1,7 @@
 :root {
   --bg: #f3f5f1; --surface: #ffffff; --surface-2: #f7f9f6; --ink: #17201c; --muted: #5b6862;
   --line: #e1e7e2; --accent: #0b7a4b; --accent-strong: #08643d; --accent-soft: #e3f3ea; --accent-ink: #ffffff;
-  --gold: #e7a83a; --gold-soft: #fdf3df; --warn: #a14a12; --mark: #ffe58a;
+  --gold: #e7a83a; --gold-soft: #fdf3df; --blue: #2563c9; --blue-soft: #e6eefb; --warn: #a14a12; --mark: #ffe58a;
   --hero-1: #063d27; --hero-2: #0b7a4b;
   --shadow: 0 1px 2px rgba(16, 40, 28, .05), 0 8px 24px -12px rgba(16, 40, 28, .18);
   --shadow-lg: 0 2px 4px rgba(16, 40, 28, .05), 0 24px 48px -20px rgba(16, 40, 28, .35);
@@ -12,7 +12,7 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1311; --surface: #171e1b; --surface-2: #1d2622; --ink: #e8eeea; --muted: #97a69f;
     --line: #2a3530; --accent: #3fbf86; --accent-strong: #5fd39d; --accent-soft: #183427; --accent-ink: #06130d;
-    --gold: #f0b85a; --gold-soft: #2f2615; --warn: #e39a63; --mark: #8a6d12;
+    --gold: #f0b85a; --gold-soft: #2f2615; --blue: #7aa7f0; --blue-soft: #18233a; --warn: #e39a63; --mark: #8a6d12;
     --hero-1: #041f14; --hero-2: #0a5235;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .6);
     --shadow-lg: 0 24px 48px -20px rgba(0, 0, 0, .8);
@@ -360,3 +360,52 @@ pre.tsv {
   padding: 7px 14px; border-radius: 999px; font-weight: 700; font-size: .85rem; cursor: pointer;
 }
 .install:hover { background: rgba(255, 255, 255, .24); }
+
+/* Collections: counter-narratives and Did You Know? */
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px;
+}
+.tab {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; min-width: 0;
+  padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.tab-name { font-weight: 800; font-size: .98rem; white-space: nowrap; }
+@media (max-width: 420px) { .tab-name { font-size: .88rem; } .tab { padding: 9px 10px; } }
+.tab-sub { font-size: .76rem; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.tab.replies[aria-selected="true"] .tab-name { color: var(--accent-strong); }
+.tab.facts[aria-selected="true"] .tab-name { color: var(--blue); }
+.pickers.single { grid-template-columns: 1fr; }
+
+/* Fact cards */
+.card.fact { border-top-color: var(--blue); }
+.fact .tag { background: var(--blue-soft); color: var(--blue); }
+.card.fact .say { color: var(--blue); }
+.results li.fact { border-left-color: var(--blue); }
+.fact .note, .note.why { border-left-color: var(--blue); }
+.source { margin: 10px 0 0; font-size: .8rem; color: var(--muted); font-style: italic; text-align: left; }
+.note.related { border-left-color: var(--blue); }
+.related-body { padding: 0 12px 10px; }
+.related-body p { margin: 0 0 6px; padding: 0; }
+.related-q { font-weight: 700; color: var(--ink); }
+.related-q .code { margin-left: 4px; }
+
+/* Did you know? of the day */
+.panel.dyk {
+  border-top: 4px solid var(--blue);
+  background: linear-gradient(180deg, var(--blue-soft), var(--surface) 70%);
+}
+.dyk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.dyk-head h2 { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; color: var(--blue); }
+.dyk-head h2 small { display: block; font-size: .75rem; font-weight: 600; color: var(--muted); }
+.dyk-head .link { white-space: nowrap; color: var(--blue); }
+.dyk-badge { font-size: 1.4rem; }
+.dyk-q { font-size: 1.15rem; font-weight: 700; margin: 8px 0 12px; line-height: 1.4; }
+.dyk-a { margin: 0 0 12px; font-size: 1.02rem; line-height: 1.5; }
+.btn.reveal { width: 100%; border-style: dashed; border-color: var(--blue); color: var(--blue); background: var(--surface); }
+.panel.dyk .result-actions { align-items: flex-end; }
+.panel.dyk .source { margin: 0; }
+.dyk-why { margin: 0; padding: 10px 12px; border-left: 3px solid var(--blue); background: var(--surface-2); border-radius: 0 10px 10px 0; font-size: .92rem; color: var(--muted); }
+.dyk-why strong { display: block; color: var(--ink); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }

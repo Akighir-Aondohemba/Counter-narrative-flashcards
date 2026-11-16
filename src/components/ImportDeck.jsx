@@ -28,7 +28,7 @@ export default function ImportDeck({ onAdd }) {
 
   return (
     <details>
-      <summary>Add or import a deck (TSV: Question⇥Answer, optional ⇥Note)</summary>
+      <summary>Add or import a counter-narrative deck (TSV: Question⇥Answer, optional ⇥Note)</summary>
       <div className="row">
         <input
           type="text"
