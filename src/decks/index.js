@@ -2,6 +2,9 @@ import { parseTSV } from "../lib/cards.js";
 
 // Built-in decks. To add one: drop a Question<TAB>Answer[<TAB>Note] .tsv file in this folder
 // and add a line below with its file name and the topic name shown in the app.
+// When the built-in cards were last checked against the research briefs. Update it with the cards.
+export const CARDS_UPDATED = "2026-11-15";
+
 const TOPICS = [
   ["why-vote-again", "Why Vote Again"],
   ["food-cost-of-living", "Food & Cost of Living"],
