@@ -8,7 +8,6 @@ import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
 import ExportPanel from "./components/ExportPanel.jsx";
 import { SearchBox, SearchResults } from "./components/SearchPanel.jsx";
-import FactOfTheDay from "./components/FactOfTheDay.jsx";
 
 const STORE = "cn-flashcards-decks-v1"; // user-added decks, saved as { topic: tsvText }
 const PROGRESS = "cn-flashcards-progress-v1"; // ids of cards marked "Got it", saved as an array
@@ -208,8 +207,6 @@ export default function App() {
           onClear={() => setQuery("")}
           isLearned={isLearned}
         />
-
-        <FactOfTheDay facts={facts} />
 
         <section className="panel">
           <div className="panel-head">

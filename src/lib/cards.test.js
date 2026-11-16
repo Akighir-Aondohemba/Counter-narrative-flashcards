@@ -170,11 +170,3 @@ describe("speakable", () => {
       "1.93 trillion naira, 70,000 naira, 15.8 trillion naira and 50 billion dollars.",
     ));
 });
-
-describe("fact of the day", async () => {
-  const { dayIndex } = await import("../components/FactOfTheDay.jsx");
-  it("is the same all day and changes the next day", () => {
-    expect(dayIndex(76, new Date(2026, 10, 16, 1))).toBe(dayIndex(76, new Date(2026, 10, 16, 23)));
-    expect(dayIndex(76, new Date(2026, 10, 17))).toBe((dayIndex(76, new Date(2026, 10, 16)) + 1) % 76);
-  });
-});
