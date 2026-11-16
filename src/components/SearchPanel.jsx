@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { noteLabel, searchCards, searchTerms } from "../lib/cards.js";
 import Highlight from "./Highlight.jsx";
 
@@ -14,7 +15,7 @@ export function SearchBox({ query, onChange }) {
         type="search"
         value={query}
         onChange={(e) => onChange(e.target.value)}
-        placeholder='Search, e.g. minimum wage or "student loan"'
+        placeholder='Search words or "a phrase"'
         aria-label="Search all cards for words or a phrase"
         autoComplete="off"
       />
@@ -51,26 +52,43 @@ export function SearchResults({ cards, query, onStudy, onClear }) {
       ) : (
         <ol className="results">
           {results.map((c, i) => (
-            <li key={i} className={c.kind === "Voter Response" ? "voter" : ""}>
-              <div className="meta">
-                <span className="tag">{c.kind}</span>
-                {c.topic}
-              </div>
-              <div className="rq">
-                <Highlight text={c.q} terms={terms} />
-              </div>
-              <div className="ra">
-                <Highlight text={c.a} terms={terms} />
-              </div>
-              {c.note && (
-                <div className="note">
-                  <strong>{noteLabel(c)}</strong> <Highlight text={c.note} terms={terms} />
-                </div>
-              )}
-            </li>
+            <ResultItem key={`${c.topic}|${c.q}|${i}`} card={c} terms={terms} />
           ))}
         </ol>
       )}
     </section>
+  );
+}
+
+// Long answers start clamped to a few lines; "Read more" shows the whole answer and the note.
+const LONG = 170; // characters
+
+function ResultItem({ card: c, terms }) {
+  const [open, setOpen] = useState(false);
+  const long = c.a.length > LONG || Boolean(c.note);
+  const collapsed = long && !open;
+  return (
+    <li className={c.kind === "Voter Response" ? "voter" : ""}>
+      <div className="meta">
+        <span className="tag">{c.kind}</span>
+        {c.topic}
+      </div>
+      <div className="rq">
+        <Highlight text={c.q} terms={terms} />
+      </div>
+      <div className={collapsed ? "ra clamp" : "ra"}>
+        <Highlight text={c.a} terms={terms} />
+      </div>
+      {c.note && !collapsed && (
+        <div className="note">
+          <strong>{noteLabel(c)}</strong> <Highlight text={c.note} terms={terms} />
+        </div>
+      )}
+      {long && (
+        <button type="button" className="link more" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          {open ? "Show less ▴" : "Read more ▾"}
+        </button>
+      )}
+    </li>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builtInDecks } from "./decks/index.js";
 import { KINDS, parseTSV, shuffle } from "./lib/cards.js";
-import ChipGroup from "./components/ChipGroup.jsx";
+import FilterPicker from "./components/FilterPicker.jsx";
 import StudySession from "./components/StudySession.jsx";
 import ImportDeck from "./components/ImportDeck.jsx";
 import ExportPanel from "./components/ExportPanel.jsx";
@@ -98,27 +98,23 @@ export default function App() {
         />
 
         <section className="panel">
-          <div className="step">
-            <span className="num">1</span>
-            <h2>Choose topics</h2>
-            <SelectAll all={Object.keys(decks)} set={topics} setter={setTopics} />
+          <h2 className="panel-title">Choose what to study</h2>
+          <div className="pickers">
+            <FilterPicker
+              title="Topics"
+              items={Object.keys(decks).map((name) => ({ label: name, count: decks[name].length }))}
+              selected={topics}
+              onToggle={toggle(topics, setTopics)}
+              onSetAll={(list) => setTopics(new Set(list))}
+            />
+            <FilterPicker
+              title="Card types"
+              items={KINDS.map((k) => ({ label: k, count: inTopics.filter((c) => c.kind === k).length }))}
+              selected={kinds}
+              onToggle={toggle(kinds, setKinds)}
+              onSetAll={(list) => setKinds(new Set(list))}
+            />
           </div>
-          <ChipGroup
-            items={Object.keys(decks).map((name) => ({ label: name, count: decks[name].length }))}
-            selected={topics}
-            onToggle={toggle(topics, setTopics)}
-          />
-
-          <div className="step spaced">
-            <span className="num">2</span>
-            <h2>Choose card types</h2>
-            <SelectAll all={KINDS} set={kinds} setter={setKinds} />
-          </div>
-          <ChipGroup
-            items={KINDS.map((k) => ({ label: k, count: inTopics.filter((c) => c.kind === k).length }))}
-            selected={kinds}
-            onToggle={toggle(kinds, setKinds)}
-          />
 
           <div className="startbar">
             <div className="count">
@@ -154,11 +150,3 @@ export default function App() {
   );
 }
 
-function SelectAll({ all, set, setter }) {
-  const allOn = all.every((x) => set.has(x));
-  return (
-    <button className="link" onClick={() => setter(new Set(allOn ? [] : all))}>
-      {allOn ? "Clear all" : "Select all"}
-    </button>
-  );
-}

@@ -16,7 +16,8 @@ A React 18 + Vite single-page app in plain JavaScript (JSX), with no TypeScript,
 - **`src/lib/cards.js`** has the pure logic: `parseTSV` (returns valid cards and the line numbers of bad lines), `toTSV`, `shuffle`, `searchCards`, and `kindOf`. `kindOf` infers a card's type (Voter Response, Definition, Application, Comparison, Example) from the question's wording with regexes. A question starting with a quotation mark or `(` is a Voter Response. Phrase other questions to match it: "What is the difference…", "Give an example…", "How/Why…". "How much/many" counts as Definition.
 - **`src/App.jsx`** holds all state: the selected topics and kinds (as Sets), the shuffle flag, and the current study session. Decks users add in the UI are stored in `localStorage` under `cn-flashcards-decks-v1` as `{ topic: tsvText }` and merged over the built-in decks. Every storage access is wrapped in try/catch.
 - **`SearchPanel`** searches every card in every topic (all words must match; quoted phrases match whole), ignoring the topic and type filters.
-- **`StudySession`** is remounted through a `key` for each new session, and owns its own queue. "Got it" removes the current card; "Review again" moves it to the end.
+- **`FilterPicker`** is the Topics / Card types button; it opens a native `<dialog>` checklist (a bottom sheet on phones).
+- **`StudySession`** is remounted through a `key` for each new session, and owns its own queue. "Got it" removes the current card; "Review again" moves it to the end. The note (push-back fact) starts collapsed on every card.
 
 ## Content rules
 

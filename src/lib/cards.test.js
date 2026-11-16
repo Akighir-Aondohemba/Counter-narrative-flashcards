@@ -61,3 +61,15 @@ describe("searchCards", () => {
     expect(searchCards(cards, "   ")).toEqual([]);
   });
 });
+
+describe("picker summary", async () => {
+  const { summary } = await import("../components/FilterPicker.jsx");
+  const items = ["A", "B", "C", "D"].map((label) => ({ label, count: 1 }));
+  it.each([
+    [["A", "B", "C", "D"], "All 4"],
+    [[], "None"],
+    [["B"], "B"],
+    [["A", "C"], "A, C"],
+    [["A", "B", "C"], "3 of 4"],
+  ])("%j -> %s", (on, text) => expect(summary(items, new Set(on))).toBe(text));
+});

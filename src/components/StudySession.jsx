@@ -7,13 +7,19 @@ export default function StudySession({ cards }) {
   const [pos, setPos] = useState(0);
   const [shown, setShown] = useState(false);
   const [learned, setLearned] = useState(0);
+  const [noteOpen, setNoteOpen] = useState(false); // the push-back fact starts collapsed on every card
   const total = cards.length;
 
-  const flip = () => queue.length && setShown((s) => !s);
+  const flip = () => {
+    if (!queue.length) return;
+    setShown((s) => !s);
+    setNoteOpen(false);
+  };
   const move = (d) => {
     if (!queue.length) return;
     setPos((p) => (p + d + queue.length) % queue.length);
     setShown(false);
+    setNoteOpen(false);
   };
   const removeCurrent = (requeue) => {
     if (!queue.length) return;
@@ -24,6 +30,7 @@ export default function StudySession({ cards }) {
     setQueue(next);
     if (pos >= next.length) setPos(0);
     setShown(false);
+    setNoteOpen(false);
   };
 
   useEffect(() => {
@@ -36,6 +43,7 @@ export default function StudySession({ cards }) {
       else if (e.key === "ArrowLeft") move(-1);
       else if (e.key.toLowerCase() === "g") removeCurrent(false);
       else if (e.key.toLowerCase() === "r") removeCurrent(true);
+      else if (e.key.toLowerCase() === "p" && shown) setNoteOpen((o) => !o);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -91,8 +99,20 @@ export default function StudySession({ cards }) {
               {card.a}
             </div>
             {card.note && (
-              <div className="note">
-                <strong>{noteLabel(card)}</strong> {card.note}
+              <div className={`note collapsible${noteOpen ? " open" : ""}`}>
+                <button
+                  type="button"
+                  className="note-toggle"
+                  aria-expanded={noteOpen}
+                  onClick={(e) => {
+                    e.stopPropagation(); // don't flip the card
+                    setNoteOpen((o) => !o);
+                  }}
+                >
+                  <strong>{noteLabel(card)}</strong>
+                  <span className="chev" aria-hidden="true">▸</span>
+                </button>
+                {noteOpen && <p>{card.note}</p>}
               </div>
             )}
           </>
@@ -106,7 +126,7 @@ export default function StudySession({ cards }) {
         <button className="btn primary" onClick={() => removeCurrent(false)}>✓ Got it</button>
         <button className="btn ghost" onClick={() => move(1)} aria-label="Next card">→</button>
       </div>
-      <p className="keys">Keys: Space flips · ← → move · G got it · R review again</p>
+      <p className="keys">Keys: Space flips · P push-back fact · ← → move · G got it · R review again</p>
     </>
   );
 }

@@ -30,10 +30,10 @@ Then open the address it prints (usually http://localhost:5173).
 
 ## Using the app
 
-- **Search cards** finds words or phrases in every card's question, answer and note, across all topics. Separate words must all appear; put a phrase in quotes ("student loan") to match it exactly. **Study these** starts a session with just the matches.
-- Tap topics and card types (Voter Response, Definition, Application, Comparison, Example) to choose which cards to study.
-- Tap a card to show the answer. **Got it** removes the card from this session; **Review again** moves it to the back.
-- Keyboard: Space flips the card, ← → move between cards, G is "Got it", R is "Review again".
+- **Search cards** finds words or phrases in every card's question, answer and note, across all topics. Separate words must all appear; put a phrase in quotes ("student loan") to match it exactly. Long answers are cut to three lines; **Read more** shows the full answer and its push-back fact. **Study these** starts a session with just the matches.
+- Tap **Topics** or **Card types** (Voter Response, Definition, Application, Comparison, Example) to open a checklist and choose which cards to study.
+- Tap a card to show the answer. On voter responses, tap **If they push back** to show the backup fact. **Got it** removes the card from this session; **Review again** moves it to the back.
+- Keyboard: Space flips the card, P shows the push-back fact, ← → move between cards, G is "Got it", R is "Review again".
 - **Add or import a deck** takes pasted lines or a `.tsv` file. Cards added this way are saved only in that browser.
 - **Export** copies or downloads the selected cards as tab-separated text.
 
