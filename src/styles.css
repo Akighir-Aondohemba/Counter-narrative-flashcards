@@ -389,8 +389,8 @@ pre.tsv {
 .note.related { border-left-color: var(--blue); }
 .related-body { padding: 0 12px 10px; }
 .related-body p { margin: 0 0 6px; padding: 0; }
-.related-q { font-weight: 700; color: var(--ink); }
-.related-q .code { margin-left: 4px; }
+.related-a { color: var(--ink); }
+.related-a .code { margin-left: 4px; }
 
 /* Did you know? of the day */
 .panel.dyk {
@@ -402,8 +402,9 @@ pre.tsv {
 .dyk-head h2 small { display: block; font-size: .75rem; font-weight: 600; color: var(--muted); }
 .dyk-head .link { white-space: nowrap; color: var(--blue); }
 .dyk-badge { font-size: 1.4rem; }
-.dyk-q { font-size: 1.15rem; font-weight: 700; margin: 8px 0 12px; line-height: 1.4; }
-.dyk-a { margin: 0 0 10px; font-size: 1.02rem; }
+.dyk-a { margin: 8px 0 12px; font-size: 1.12rem; font-weight: 600; line-height: 1.45; }
+.panel.dyk .result-actions { align-items: flex-end; }
+.panel.dyk .source { margin: 0; }
+.results .ra.lead { font-weight: 600; font-size: 1rem; margin-top: 8px; }
 .dyk-why { margin: 0; padding: 10px 12px; border-left: 3px solid var(--blue); background: var(--surface-2); border-radius: 0 10px 10px 0; font-size: .92rem; color: var(--muted); }
 .dyk-why strong { display: block; color: var(--ink); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
-.btn.reveal { width: 100%; border-style: dashed; border-color: var(--blue); color: var(--blue); background: var(--surface); }

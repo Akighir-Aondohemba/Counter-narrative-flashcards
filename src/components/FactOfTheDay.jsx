@@ -8,10 +8,9 @@ export function dayIndex(length, date = new Date()) {
   return length ? day % length : 0;
 }
 
-// A "Did you know?" card on the home screen. Guess first, then tap to see the fact.
+// A "Did you know?" card on the home screen. The heading is the question, so the fact follows it directly.
 export default function FactOfTheDay({ facts }) {
   const [index, setIndex] = useState(() => dayIndex(facts.length));
-  const [shown, setShown] = useState(false);
   const [today] = useState(index);
   if (!facts.length) return null;
   const fact = facts[index % facts.length];
@@ -20,7 +19,6 @@ export default function FactOfTheDay({ facts }) {
     let next = index;
     while (facts.length > 1 && next === index) next = Math.floor(Math.random() * facts.length);
     setIndex(next);
-    setShown(false);
   }
 
   return (
@@ -41,26 +39,14 @@ export default function FactOfTheDay({ facts }) {
         <span className="code">{fact.code?.replace(/^DYK-/, "")}</span>
         {fact.topic}
       </div>
-      <p className="dyk-q">{fact.q}</p>
-      {shown ? (
-        <div className="dyk-body">
-          <p className="dyk-a">{fact.a}</p>
-          <p className="dyk-why">
-            <strong>Why it matters to voters</strong> {fact.note}
-          </p>
-          {fact.source && <p className="source">Source: {fact.source}</p>}
-          <div className="result-actions">
-            <button type="button" className="link small" onClick={() => setShown(false)}>
-              Hide ▴
-            </button>
-            <CopyButton text={shareText(fact)} label="Copy fact" />
-          </div>
-        </div>
-      ) : (
-        <button type="button" className="btn reveal" onClick={() => setShown(true)}>
-          Guess, then tap to see the fact
-        </button>
-      )}
+      <p className="dyk-a">{fact.a}</p>
+      <p className="dyk-why">
+        <strong>Why it matters to voters</strong> {fact.note}
+      </p>
+      <div className="result-actions">
+        {fact.source && <p className="source">Source: {fact.source}</p>}
+        <CopyButton text={shareText(fact)} label="Copy fact" />
+      </div>
     </section>
   );
 }

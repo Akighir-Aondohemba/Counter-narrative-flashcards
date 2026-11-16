@@ -148,7 +148,7 @@ export default function StudySession({ cards, onGotIt, onAgain, relatedFact }) {
           onTouchCancel={onTouchEnd}
         >
           <div className="meta">
-            <span className="tag">{voter ? "Voter says" : fact ? "Did you know?" : card.kind}</span>
+            <span className="tag">{voter ? "Voter says" : fact ? "Impact fact" : card.kind}</span>
             {card.code && <span className="code">{card.code.replace(/^DYK-/, "")}</span>}
             {card.topic}
           </div>
@@ -194,10 +194,9 @@ export default function StudySession({ cards, onGotIt, onAgain, relatedFact }) {
                   </button>
                   {relOpen && (
                     <div className="related-body">
-                      <p className="related-q">
-                        {related.q} <span className="code">{related.code.replace(/^DYK-/, "")}</span>
+                      <p className="related-a">
+                        {related.a} <span className="code">{related.code.replace(/^DYK-/, "")}</span>
                       </p>
-                      <p>{related.a}</p>
                       {related.source && <p className="source">Source: {related.source}</p>}
                     </div>
                   )}
