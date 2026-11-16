@@ -66,13 +66,12 @@ const LONG = 170; // characters
 
 function ResultItem({ card: c, terms, learned }) {
   const [open, setOpen] = useState(false);
-  const fact = c.kind === FACT; // "Did you know?" is the question, so a fact leads with its answer
   const long = c.a.length > LONG || Boolean(c.note);
   const collapsed = long && !open;
   return (
     <li className={c.kind === "Voter Response" ? "voter" : c.kind === FACT ? "fact" : ""}>
       <div className="meta">
-        <span className="tag">{c.kind === FACT ? "Did you know?" : c.kind}</span>
+        <span className="tag">{c.kind === FACT ? "Impact fact" : c.kind}</span>
         {c.code && (
           <span className="code">
             <Highlight text={c.code.replace(/^DYK-/, "")} terms={terms} />
@@ -81,12 +80,10 @@ function ResultItem({ card: c, terms, learned }) {
         {c.topic}
         {learned && <span className="learned">✓ Learned</span>}
       </div>
-      {!fact && (
-        <div className="rq">
-          <Highlight text={c.q} terms={terms} />
-        </div>
-      )}
-      <div className={`${fact ? "ra lead" : "ra"}${collapsed ? " clamp" : ""}`}>
+      <div className="rq">
+        <Highlight text={c.q} terms={terms} />
+      </div>
+      <div className={collapsed ? "ra clamp" : "ra"}>
         <Highlight text={c.a} terms={terms} />
       </div>
       {c.note && !collapsed && (

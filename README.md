@@ -35,8 +35,8 @@ Then open the address it prints (usually http://localhost:5173).
 ## Using the app
 
 - The tabs at the top of **Choose what to study** switch between **Counter-narratives** and **Did You Know?**. Each has its own topics; card types apply to counter-narratives only.
-- **Did you know?** on the home screen shows a fact of the day (the same for the whole team, changing daily). Guess the answer, then tap to see it; **Next fact** shows another.
-- On a counter-narrative card, **Back it up: did you know?** offers a related positive fact, such as a power fact on an Electricity card, to share after the reply.
+- **Fact of the day** on the home screen shows a Did You Know card (the same for the whole team, changing daily). Guess the answer, then tap to see it; **Next fact** shows another. Fact cards are labelled "Impact fact", so a question never follows the words "Did you know?".
+- On a counter-narrative card, **Back it up with a fact** offers a related positive fact, such as a power fact on an Electricity card, to share after the reply.
 
 - **Search cards** finds words or phrases in every card's question, answer, note and code, across all topics. Separate words must all appear; put a phrase in quotes ("student loan") to match it exactly. Type a card code such as `F03` to jump to that card. Long answers are cut to three lines; **Read more** shows the full answer and its push-back fact. **Study these** starts a session with just the matches.
 - Tap **Topics** or **Card types** (Voter Response, Definition, Application, Comparison, Example) to open a checklist and choose which cards to study. The checklist shows how many cards of each topic you've learned.

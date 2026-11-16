@@ -12,7 +12,7 @@ export default function StudySession({ cards, onGotIt, onAgain, relatedFact }) {
   const [shown, setShown] = useState(false);
   const [learned, setLearned] = useState(0);
   const [noteOpen, setNoteOpen] = useState(false); // the push-back fact starts collapsed on every card
-  const [relOpen, setRelOpen] = useState(false); // the related "Did you know?" fact, also collapsed
+  const [relOpen, setRelOpen] = useState(false); // the related impact fact, also collapsed
   const [dx, setDx] = useState(0); // current swipe offset
   const touch = useRef(null);
   const total = cards.length;
@@ -189,14 +189,15 @@ export default function StudySession({ cards, onGotIt, onAgain, relatedFact }) {
                     aria-expanded={relOpen}
                     onClick={stop(() => setRelOpen((o) => !o))}
                   >
-                    <strong>💡 Back it up: did you know?</strong>
+                    <strong>💡 Back it up with a fact</strong>
                     <span className="chev" aria-hidden="true">▸</span>
                   </button>
                   {relOpen && (
                     <div className="related-body">
-                      <p className="related-a">
-                        {related.a} <span className="code">{related.code.replace(/^DYK-/, "")}</span>
+                      <p className="related-q">
+                        {related.q} <span className="code">{related.code.replace(/^DYK-/, "")}</span>
                       </p>
+                      <p>{related.a}</p>
                       {related.source && <p className="source">Source: {related.source}</p>}
                     </div>
                   )}

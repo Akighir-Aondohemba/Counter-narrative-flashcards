@@ -8,9 +8,10 @@ export function dayIndex(length, date = new Date()) {
   return length ? day % length : 0;
 }
 
-// A "Did you know?" card on the home screen. The heading is the question, so the fact follows it directly.
+// "Fact of the day" on the home screen: guess the answer to the question, then tap to check it.
 export default function FactOfTheDay({ facts }) {
   const [index, setIndex] = useState(() => dayIndex(facts.length));
+  const [shown, setShown] = useState(false);
   const [today] = useState(index);
   if (!facts.length) return null;
   const fact = facts[index % facts.length];
@@ -19,6 +20,7 @@ export default function FactOfTheDay({ facts }) {
     let next = index;
     while (facts.length > 1 && next === index) next = Math.floor(Math.random() * facts.length);
     setIndex(next);
+    setShown(false);
   }
 
   return (
@@ -27,8 +29,8 @@ export default function FactOfTheDay({ facts }) {
         <h2 id="dyk-title">
           <span className="dyk-badge" aria-hidden="true">💡</span>
           <span>
-            Did you know?
-            <small>{index === today ? "Today's fact" : "Another fact"}</small>
+            {index === today ? "Fact of the day" : "Another fact"}
+            <small>Guess the answer, then check it</small>
           </span>
         </h2>
         <button type="button" className="link small" onClick={another}>
@@ -39,14 +41,23 @@ export default function FactOfTheDay({ facts }) {
         <span className="code">{fact.code?.replace(/^DYK-/, "")}</span>
         {fact.topic}
       </div>
-      <p className="dyk-a">{fact.a}</p>
-      <p className="dyk-why">
-        <strong>Why it matters to voters</strong> {fact.note}
-      </p>
-      <div className="result-actions">
-        {fact.source && <p className="source">Source: {fact.source}</p>}
-        <CopyButton text={shareText(fact)} label="Copy fact" />
-      </div>
+      <p className="dyk-q">{fact.q}</p>
+      {shown ? (
+        <>
+          <p className="dyk-a">{fact.a}</p>
+          <p className="dyk-why">
+            <strong>Why it matters to voters</strong> {fact.note}
+          </p>
+          <div className="result-actions">
+            {fact.source && <p className="source">Source: {fact.source}</p>}
+            <CopyButton text={shareText(fact)} label="Copy fact" />
+          </div>
+        </>
+      ) : (
+        <button type="button" className="btn reveal" onClick={() => setShown(true)}>
+          Tap to see the answer
+        </button>
+      )}
     </section>
   );
 }
