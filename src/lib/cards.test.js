@@ -48,7 +48,7 @@ describe("built-in decks", () => {
     expect(names).toHaveLength(26);
     for (const name of names) expect(builtInDecks[name].length).toBeGreaterThan(0);
     const count = (col) => names.filter((n) => topicCollection[n] === col).reduce((n, t) => n + builtInDecks[t].length, 0);
-    expect(count("replies")).toBe(211);
+    expect(count("replies")).toBe(77);
     expect(count("facts")).toBe(76);
   });
 

@@ -1,7 +1,7 @@
 import { FACT, parseTSV } from "../lib/cards.js";
 
 // When the built-in cards were last checked against the research briefs. Update it with the cards.
-export const CARDS_UPDATED = "2026-11-15";
+export const CARDS_UPDATED = "2026-11-19";
 
 // Two collections, each with its own ordered topics. To add a topic: drop a
 // Question<TAB>Answer[<TAB>Note[<TAB>Code[<TAB>Source]]] .tsv file in the collection's
@@ -21,7 +21,6 @@ export const COLLECTIONS = [
       ["minimum-wage", "Minimum Wage"],
       ["new-tax-laws", "New Tax Laws"],
       ["my-state-lga", "My State & LGA"],
-      ["regional-inclusion", "Regional Inclusion"],
       ["national-debt-borrowing", "National Debt & Borrowing"],
       ["youth-jobs-japa", "Youth, Jobs & Japa"],
       ["corruption-accountability", "Corruption & Accountability"],
@@ -63,7 +62,6 @@ export const RELATED_FACTS = {
   "Minimum Wage": ["E02", "H01"],
   "New Tax Laws": ["E03", "E04", "E06"],
   "My State & LGA": ["E02", "E05", "Y06"],
-  "Regional Inclusion": ["Z01", "Z02", "Z03", "Z04", "Z05", "Z06"],
   "National Debt & Borrowing": ["E01", "E03", "E04", "E05"],
   "Youth, Jobs & Japa": ["Y01", "Y02", "Y03", "Y09", "H06"],
   "Corruption & Accountability": ["C01", "C02", "C03", "C04", "C05", "C06"],

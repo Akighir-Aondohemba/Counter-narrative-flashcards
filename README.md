@@ -4,7 +4,7 @@ A React flashcard app for the voter-engagement and callers team. It gives fact-c
 
 287 cards in two collections:
 
-**Counter-narratives:** 211 cards in 16 topics: Why Vote Again, Food & Cost of Living, Fuel Subsidy Removal, Electricity, Security, Minimum Wage, New Tax Laws, My State & LGA, Regional Inclusion, National Debt & Borrowing, Youth, Jobs & Japa, Corruption & Accountability, Renewed Hope Promises, Judiciary & Electoral Integrity, Personal Attacks, and Caller Technique.
+**Counter-narratives:** 77 cards in 15 topics: Why Vote Again, Food & Cost of Living, Fuel Subsidy Removal, Electricity, Security, Minimum Wage, New Tax Laws, My State & LGA, National Debt & Borrowing, Youth, Jobs & Japa, Corruption & Accountability, Renewed Hope Promises, Judiciary & Electoral Integrity, Personal Attacks, and Caller Technique.
 
 57 of them are **voter responses**: what a voter says, a 15-second reply, and a backup fact to use only if they push back.
 
