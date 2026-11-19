@@ -45,7 +45,7 @@ describe("parseTSV", () => {
 describe("built-in decks", () => {
   it("load every deck with only valid lines", () => {
     const names = Object.keys(builtInDecks);
-    expect(names).toHaveLength(26);
+    expect(names).toHaveLength(25);
     for (const name of names) expect(builtInDecks[name].length).toBeGreaterThan(0);
     const count = (col) => names.filter((n) => topicCollection[n] === col).reduce((n, t) => n + builtInDecks[t].length, 0);
     expect(count("replies")).toBe(77);
